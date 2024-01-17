@@ -1,7 +1,7 @@
 -- Script that ranks country origins of bands,
 -- ordered by the number of (non-unique) fans
-CREATE TEMPORARY TABLE IF NOT EXISTS tmp_fans as (
-    SELECT origin, COUNT(*) AS nb_fans
+CREATE TEMPORARY TABLE IF NOT EXISTS tmp_fans AS (
+    SELECT origin, SUM(fans) AS nb_fans
     FROM metal_bands
     GROUP BY origin
 );
