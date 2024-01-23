@@ -6,35 +6,15 @@ DROP PROCEDURE IF EXISTS ComputeAverageWeightedScoreForUsers;
 DELIMITER //
 CREATE PROCEDURE ComputeAverageWeightedScoreForUsers()
 BEGIN
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS total_weighted_score INT NOT NULL;
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS total_weight INT NOT NULL;
-
-    UPDATE users
-        SET total_weighted_score = (
-            SELECT SUM(corrections.score * projects.weight)
-            FROM corrections
-                INNER JOIN projects
-                    ON corrections.project_id = projects.id
-            WHERE corrections.user_id = users.id
-        );
-
-    UPDATE users
-        SET total_weight = (
-            SELECT SUM(projects.weight)
-                FROM corrections
-                    INNER JOIN projects
-                        ON corrections.project_id = products.id
-                WHERE corrections.user_id = users.id
-        );
-
-    UPDATE users
-        SET users.average_score = IF(
-            users.total_weight = 0, 0, users.total_weighted_score / users.total_weight
-            );
-    ALTER TABLE users
-        DROP COLUMN total_weighted_score;
-    ALTER TABLE users
-        DROP COLUMN total_weight;
+    UPDATE users AS US,
+        (SELECT US.id, SUM(score * weight) / SUM(weight) AS avg_weight
+        FROM users AS US
+        JOIN corrections as CORRE ON US.id = CORRE.user_id
+        JOIN projects AS PROJ ON CORRE.project_id = PROJ.id
+        GROUP BY US.id)
+    AS WIN
+    SET US.average_score = WIN.avg_weight
+    WHERE US.id = WIN.id;
 END;
 
 //
