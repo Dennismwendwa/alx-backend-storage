@@ -22,6 +22,7 @@ def count_access(method: Callable) -> Callable:
             return cached_result.decode("utf-8")
 
         result: str = method(*args, **kwargs)
+        redis_client.set(count_key, 0)
         redis_client.setex(cache_key, 10, result)
 
         return result
