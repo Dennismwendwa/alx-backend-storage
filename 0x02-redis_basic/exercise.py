@@ -17,7 +17,7 @@ def replay(method: Callable) -> None:
 
     for args, result in zip(inputs, outputs):
         print(
-            (f"{method.__qualname__}{args.decode('utf-8')} "
+            (f"{method.__qualname__}(*{args.decode('utf-8')}) "
              f"-> {result.decode('utf-8')}")
             )
 
