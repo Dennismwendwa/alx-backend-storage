@@ -6,7 +6,7 @@ from functools import wraps
 from typing import Callable
 
 
-redis_client: redis.Redis = redis.Redis()
+redis_client = redis.Redis()
 
 
 def count_access(method: Callable) -> Callable:
@@ -16,7 +16,7 @@ def count_access(method: Callable) -> Callable:
         count_key: str = f"count:{url}"
         result_key: str = f"cache:{url}"
 
-        access_count: int = redis_client.incr(count_key)
+        redis_client.incr(count_key)
 
         result = redis_client.get(result_key)
         if result:
@@ -34,19 +34,3 @@ def get_page(url: str) -> str:
     """This function send http requests to the supplied url"""
     response = requests.get(url)
     return response.text
-
-
-if __name__ == "__main__":
-    slow_url: str = ("http://slowwly.robertomurray.co.uk"
-                     "/delay/1000/url/https://www.example.com")
-    print(get_page(slow_url))
-    print(get_page(slow_url))
-
-    fast_url: str = ("https://github.com/Dennismwendwa/alx-backend-storage/"
-                     "blob/main/0x02-redis_basic/exercise.py")
-
-    print(get_page(fast_url))
-
-    import time
-    time.sleep(11)
-    print(get_page(slow_url))
