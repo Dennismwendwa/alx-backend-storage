@@ -12,21 +12,18 @@ redis_client: redis.Redis = redis.Redis()
 def count_access(method: Callable) -> Callable:
     """This function checks and update or set the cache time"""
     @wraps(method)
-    def wrapper(*args, **kwargs) -> str:
-        url: str = args[0]
+    def wrapper(url) -> str:
         count_key: str = f"count:{url}"
-        cache_key: str = f"cache:{url}"
+        result_key: str = f"cache:{url}"
 
         access_count: int = redis_client.incr(count_key)
 
-        # print(f"Access count for {url}: {access_count}")
-        cached_result: bytes = redis_client.get(cache_key)
-        if cached_result:
-            return cached_result.decode("utf-8")
-
-        result: str = method(*args, **kwargs)
+        result = redis_client.get(result_key)
+        if result:
+            return result.decode("utf-8")
+        result = method(url)
         redis_client.set(count_key, 0)
-        redis_client.setex(cache_key, 10, result)
+        redis_client.setex(result_key, 10, result)
 
         return result
     return wrapper
@@ -38,7 +35,7 @@ def get_page(url: str) -> str:
     response = requests.get(url)
     return response.text
 
-"""
+
 if __name__ == "__main__":
     slow_url: str = ("http://slowwly.robertomurray.co.uk"
                      "/delay/1000/url/https://www.example.com")
@@ -53,4 +50,3 @@ if __name__ == "__main__":
     import time
     time.sleep(11)
     print(get_page(slow_url))
-"""
