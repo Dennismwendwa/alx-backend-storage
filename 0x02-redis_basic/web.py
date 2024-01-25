@@ -6,6 +6,9 @@ from functools import wraps
 from typing import Callable
 
 
+redis_client: redis.Redis = redis.Redis()
+
+
 def count_access(method: Callable) -> Callable:
     """This function checks and update or set the cache time"""
     @wraps(method)
@@ -16,7 +19,7 @@ def count_access(method: Callable) -> Callable:
 
         access_count: int = redis_client.incr(count_key)
 
-        print(f"Access count for {url}: {access_count}")
+        # print(f"Access count for {url}: {access_count}")
         cached_result: bytes = redis_client.get(cache_key)
         if cached_result:
             return cached_result.decode("utf-8")
@@ -35,9 +38,8 @@ def get_page(url: str) -> str:
     response = requests.get(url)
     return response.text
 
-
+"""
 if __name__ == "__main__":
-    redis_client: redis.Redis = redis.Redis()
     slow_url: str = ("http://slowwly.robertomurray.co.uk"
                      "/delay/1000/url/https://www.example.com")
     print(get_page(slow_url))
@@ -51,3 +53,4 @@ if __name__ == "__main__":
     import time
     time.sleep(11)
     print(get_page(slow_url))
+"""
